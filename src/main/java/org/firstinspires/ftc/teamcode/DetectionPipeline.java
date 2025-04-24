@@ -14,6 +14,7 @@ import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;
 
 public class DetectionPipeline extends OpenCvPipeline {
+    // Width, height of viewport
     public int width = 320;
     public int height = 240;
 
@@ -22,8 +23,8 @@ public class DetectionPipeline extends OpenCvPipeline {
     // HSV thresholding
     //                                           degrees, percent, percent
     // image5
-    public Scalar hsvLowerThreshold = new Scalar(118, 34, 0);
-    public Scalar hsvUpperThreshold = new Scalar(280, 100, 59);
+    public Scalar hsvLowerThreshold = new Scalar(100, 34, 0);
+    public Scalar hsvUpperThreshold = new Scalar(280, 100, 100);
     // image6
     // public Scalar hsvLowerThreshold = new Scalar(215, 92, 37);
     // public Scalar hsvUpperThreshold = new Scalar(250, 100, 100);
@@ -39,8 +40,8 @@ public class DetectionPipeline extends OpenCvPipeline {
 
     // Edge detection
     // image5
-    public double cannyLowerThreshold = 50f;
-    public double cannyUpperThreshold = 60f;
+    public double cannyLowerThreshold = 120f;
+    public double cannyUpperThreshold = 130f;
     // image 6
     // public double cannyLowerThreshold = 0f;
     // public double cannyUpperThreshold = 100f;
@@ -55,7 +56,12 @@ public class DetectionPipeline extends OpenCvPipeline {
     // Input with contours
     Mat imgContours = new Mat();
 
-    // Input with bounding box
+    // Bounding boxes
+    public double bbWidthThreshold = 0.09 * width;
+    public double bbHeightThreshold = 0.12 * height;
+    List<Rect> bbs = new ArrayList<>();
+
+    // Input with bounding boxes
     Mat imgBB = new Mat();
 
     // Output mat (with object detection)
@@ -91,10 +97,18 @@ public class DetectionPipeline extends OpenCvPipeline {
 
         imgBB = input.clone();
 
-        // Draw bounding boxes
+        // Find/draw bounding boxes, filter out noisy ones
+        // Iterate through detected contours
         for (MatOfPoint contour : contours) {
+            // Create a bounding box for it
             Rect rect = Imgproc.boundingRect(contour);
-            Imgproc.rectangle(imgBB, rect, new Scalar(0, 255, 0));
+            // If rect is very small (very likely just noise), ignore
+            // If it is above the set thresholds (percentage of the screen width/height), add it to the list of actual bbs
+            // Also useful because we don't want to detect samples that are far away (small area on screen)
+            if (rect.width >= bbWidthThreshold && rect.height >= bbHeightThreshold) {
+                bbs.add(rect);
+                Imgproc.rectangle(imgBB, rect, new Scalar(0, 0, 255));
+            }
         }
 
         // return thresholded;
