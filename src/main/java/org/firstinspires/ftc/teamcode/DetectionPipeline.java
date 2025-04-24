@@ -7,18 +7,26 @@ import org.openftc.easyopencv.OpenCvPipeline;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Core;
 
 import org.opencv.imgproc.Imgproc;
 
 public class DetectionPipeline extends OpenCvPipeline {
+    public int width = 320;
+    public int height = 240;
+
     Mat hsv = new Mat();
 
-    // Thresholding
+    // HSV thresholding
     //                                           degrees, percent, percent
+    // image5
     public Scalar hsvLowerThreshold = new Scalar(118, 34, 0);
     public Scalar hsvUpperThreshold = new Scalar(280, 100, 59);
+    // image6
+    // public Scalar hsvLowerThreshold = new Scalar(215, 92, 37);
+    // public Scalar hsvUpperThreshold = new Scalar(250, 100, 100);
 
     // Convert to 2 degrees, 0-255, 0-255
     Scalar hsvTrueLowerThreshold = new Scalar(hsvLowerThreshold.val[0] / 2, hsvLowerThreshold.val[1] * 255 / 100, hsvLowerThreshold.val[2] * 255 / 100);
@@ -30,8 +38,12 @@ public class DetectionPipeline extends OpenCvPipeline {
     Mat masked = new Mat();
 
     // Edge detection
+    // image5
     public double cannyLowerThreshold = 50f;
     public double cannyUpperThreshold = 60f;
+    // image 6
+    // public double cannyLowerThreshold = 0f;
+    // public double cannyUpperThreshold = 100f;
 
     Mat cannyEdge = new Mat();
 
@@ -40,7 +52,13 @@ public class DetectionPipeline extends OpenCvPipeline {
     Mat hierarchy = new Mat(); 
     public int Ncontours;
 
-    // Output mat (with color labeling, object detection)
+    // Input with contours
+    Mat imgContours = new Mat();
+
+    // Input with bounding box
+    Mat imgBB = new Mat();
+
+    // Output mat (with object detection)
     Mat output = new Mat();
 
     @Override
@@ -64,17 +82,27 @@ public class DetectionPipeline extends OpenCvPipeline {
         Imgproc.findContours(cannyEdge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         Ncontours = contours.size();
 
+        imgContours = input.clone();
+
         // Draw contours
         for (int i = 0; i < contours.size(); i++) {
-            Imgproc.drawContours(output, contours, i, new Scalar(0, 255, 0));
+            Imgproc.drawContours(imgContours, contours, i, new Scalar(0, 255, 0));
         }
 
-        // Get bounding box
+        imgBB = input.clone();
+
+        // Draw bounding boxes
+        for (MatOfPoint contour : contours) {
+            Rect rect = Imgproc.boundingRect(contour);
+            Imgproc.rectangle(imgBB, rect, new Scalar(0, 255, 0));
+        }
 
         // return thresholded;
         // return masked;
         // return cannyEdge;
-        return output;
+        // return imgContours;
+        return imgBB;
+        // return output;
     }
 
 }
