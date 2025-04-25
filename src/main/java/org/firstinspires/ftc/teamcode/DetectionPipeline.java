@@ -21,15 +21,11 @@ public class DetectionPipeline extends OpenCvPipeline {
     Mat hsv = new Mat();
 
     // HSV thresholding
-    //                                           degrees, percent, percent
-    // image5
+    // Standard units                            degrees, percent, percent
     public Scalar hsvLowerThreshold = new Scalar(100, 34, 0);
     public Scalar hsvUpperThreshold = new Scalar(280, 100, 100);
-    // image6
-    // public Scalar hsvLowerThreshold = new Scalar(215, 92, 37);
-    // public Scalar hsvUpperThreshold = new Scalar(250, 100, 100);
 
-    // Convert to 2 degrees, 0-255, 0-255
+    // Convert to 2 degrees, 0-255, 0-255 because OpenCV uses different units of HSV than the standard
     Scalar hsvTrueLowerThreshold = new Scalar(hsvLowerThreshold.val[0] / 2, hsvLowerThreshold.val[1] * 255 / 100, hsvLowerThreshold.val[2] * 255 / 100);
     Scalar hsvTrueUpperThreshold = new Scalar(hsvUpperThreshold.val[0] / 2, hsvUpperThreshold.val[1] * 255 / 100, hsvUpperThreshold.val[2] * 255 / 100);
     Mat thresholded = new Mat();
@@ -38,13 +34,9 @@ public class DetectionPipeline extends OpenCvPipeline {
     // Masking
     Mat masked = new Mat();
 
-    // Edge detection
-    // image5
+    // Stricter edge detection for even less noise
     public double cannyLowerThreshold = 120f;
     public double cannyUpperThreshold = 130f;
-    // image 6
-    // public double cannyLowerThreshold = 0f;
-    // public double cannyUpperThreshold = 100f;
 
     Mat cannyEdge = new Mat();
 
